@@ -1,0 +1,29 @@
+site_name: TTF Natural Gas Storage & Price Analysis
+site_description: Reproducible Econometric & Machine Learning Framework
+site_author: Quantitative Energy Research Team
+repo_url: https://github.com/energy-econometrics/ttf-storage-analysis
+
+theme:
+  name: material
+  palette:
+    primary: indigo
+    accent: light blue
+  features:
+    - navigation.tabs
+    - navigation.sections
+    - content.code.copy
+
+nav:
+  - Overview: index.md
+  - Methodology: methodology.md
+  - Empirical Results: results.md
+  - API Reference: api_reference.md
+  - Model Card: model_card.md
+
+markdown_extensions:
+  - pymdownx.highlight
+  - pymdownx.superfences
+  - pymdownx.arithmatex:
+      generic: true
+  - tables
+  - admonition

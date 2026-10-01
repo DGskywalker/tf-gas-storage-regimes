@@ -1,0 +1,2 @@
+target,n_eval_samples,gbm_rmse,gbm_mae,gbm_directional_accuracy,base_rmse,base_mae,base_directional_accuracy,rmse_improvement_pct,mz_r2,mz_alpha,mz_beta,mz_unbiased_pval,dm_stat,dm_pval
+target_return_5d,1500,0.1132,0.0781,0.4787,0.0986,0.0675,0.4753,-14.75,0.0184,0.0034,-0.2992,0.0,-10.542,0.0

@@ -1,0 +1,43 @@
+version: "3.9"
+
+services:
+  pipeline:
+    build:
+      context: ..
+      dockerfile: docker/Dockerfile
+    container_name: ttf_storage_pipeline
+    volumes:
+      - ../data:/app/data
+      - ../reports:/app/reports
+      - ../mlruns:/app/mlruns
+    environment:
+      - GIE_API_KEY=${GIE_API_KEY:-}
+      - EIA_API_KEY=${EIA_API_KEY:-}
+      - MLFLOW_TRACKING_URI=http://mlflow:5000
+    command: ["python", "-m", "src.data.pipeline", "--run-all"]
+    depends_on:
+      - mlflow
+
+  mlflow:
+    build:
+      context: ..
+      dockerfile: docker/Dockerfile
+    container_name: ttf_mlflow_server
+    ports:
+      - "5000:5000"
+    volumes:
+      - ../mlruns:/app/mlruns
+    command: ["mlflow", "server", "--backend-store-uri", "sqlite:////app/mlruns/mlflow.db", "--default-artifact-root", "/app/mlruns/artifacts", "--host", "0.0.0.0", "--port", "5000"]
+
+  notebooks:
+    build:
+      context: ..
+      dockerfile: docker/Dockerfile
+    container_name: ttf_jupyter_server
+    ports:
+      - "8888:8888"
+    volumes:
+      - ..:/app
+    command: ["jupyter", "lab", "--ip=0.0.0.0", "--port=8888", "--no-browser", "--allow-root", "--NotebookApp.token=''"]
+    environment:
+      - PYTHONPATH=/app
