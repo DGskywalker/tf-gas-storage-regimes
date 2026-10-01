@@ -1,0 +1,23 @@
+# Python bytecode & environments
+__pycache__/
+*.py[cod]
+*$py.class
+.venv/
+env/
+venv/
+.env
+
+# Testing & Coverage
+.coverage
+htmlcov/
+.pytest_cache/
+.mypy_cache/
+.ruff_cache/
+
+# MLflow
+mlruns/
+.mlflow/
+
+# OS artifacts
+.DS_Store
+Thumbs.db
