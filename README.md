@@ -1,66 +1,66 @@
 <div align="center">
 
-# ⚡ European Natural Gas Storage & Dutch TTF Price Dynamics
+# Natural Gas Storage & Dutch TTF Price Dynamics
 ### *A Regime-Aware, Seasonally-Decomposed Econometric & Machine Learning Framework*
 
-[![CI/CD Pipeline](https://img.shields.io/badge/CI%2FCD-Passing-2ea44f?style=for-the-badge&logo=githubactions&logoColor=white)](https://github.com/DGskywalker/tf-gas-storage-regimes/actions)
-[![Python 3.11](https://img.shields.io/badge/Python-3.11-3776ab?style=for-the-badge&logo=python&logoColor=white)](https://www.python.org/)
-[![Test Coverage](https://img.shields.io/badge/Coverage-89%25-brightgreen?style=for-the-badge&logo=codecov&logoColor=white)](OUTPUT.md)
-[![DuckDB](https://img.shields.io/badge/DuckDB-0.9%2B-fff000?style=for-the-badge&logo=duckdb&logoColor=black)](https://duckdb.org/)
-[![NumPyro](https://img.shields.io/badge/NumPyro-JAX%20NUTS-red?style=for-the-badge)](https://num.pyro.ai/)
-[![LightGBM](https://img.shields.io/badge/LightGBM-SHAP-blue?style=for-the-badge)](https://lightgbm.readthedocs.io/)
-[![License: MIT](https://img.shields.io/badge/License-MIT-yellow?style=for-the-badge)](LICENSE)
+[![CI/CD Pipeline](https://img.shields.io/badge/CI%2FCD-Passing-2ea44f?style=flat-square)](https://github.com/DGskywalker/tf-gas-storage-regimes/actions)
+[![Python 3.11](https://img.shields.io/badge/Python-3.11-3776ab?style=flat-square)](https://www.python.org/)
+[![Test Coverage](https://img.shields.io/badge/Coverage-89%25-brightgreen?style=flat-square)](OUTPUT.md)
+[![DuckDB](https://img.shields.io/badge/DuckDB-0.9%2B-blue?style=flat-square)](https://duckdb.org/)
+[![NumPyro](https://img.shields.io/badge/NumPyro-JAX%20NUTS-red?style=flat-square)](https://num.pyro.ai/)
+[![LightGBM](https://img.shields.io/badge/LightGBM-SHAP-blue?style=flat-square)](https://lightgbm.readthedocs.io/)
+[![License: MIT](https://img.shields.io/badge/License-MIT-yellow?style=flat-square)](LICENSE)
 
 <br/>
 
-**[📊 View Full Output Report](OUTPUT.md)** • **[📑 Technical Paper](reports/technical_report.md)** • **[📋 Model Card](reports/model_card.md)** • **[📁 Visual Outputs](output/)**
+**[View Full Output Report](OUTPUT.md)** • **[Technical Paper](reports/technical_report.md)** • **[Model Card](reports/model_card.md)** • **[Visual Outputs](output/)**
 
 ---
 
 </div>
 
-## 📌 Executive Summary at a Glance
+## Executive Summary
 
 | Core Research Pillar | Key Insight & Empirical Evidence |
 | :--- | :--- |
-| **❓ What's the Problem?** | Linear equilibrium assumptions broke down during the 2021–2023 crisis; storage depletion causes non-linear price explosions. |
-| **💡 What's the Solution?** | A dual regime-switching framework combining **Bayesian Structural Time Series** with **SHAP-explained Gradient Boosting**. |
-| **⚙️ How the Procedure Is?** | Point-in-time $D-1$ lag alignment $\rightarrow$ STL LOESS decomposition $\rightarrow$ Hamilton Markov Switching $\rightarrow$ NumPyro NUTS inference $\rightarrow$ Stratified SHAP. |
-| **📈 Key Quantitative Finding** | Storage elasticity multiplies from **$-0.15$** in normal periods to **$-0.68$** in crisis states ($p < 0.001$, disjoint 95% HDIs). |
+| **What is the Problem?** | Linear equilibrium assumptions broke down during the 2021–2023 crisis; storage depletion causes non-linear price explosions. |
+| **What is the Solution?** | A dual regime-switching framework combining **Bayesian Structural Time Series** with **SHAP-explained Gradient Boosting**. |
+| **How the Procedure Works** | Point-in-time D-1 lag alignment -> STL LOESS decomposition -> Hamilton Markov Switching -> NumPyro NUTS inference -> Stratified SHAP. |
+| **Key Quantitative Finding** | Storage elasticity multiplies from **-0.15** in normal periods to **-0.68** in crisis states (p < 0.001, disjoint 95% HDIs). |
 
 ---
 
-## ❓ 1. What's the Problem?
+## 1. What is the Problem?
 
 Underground natural gas storage serves as the physical backbone of European energy security, buffering seasonal winter demand swings against relatively inflexible pipeline and liquefied natural gas (LNG) deliveries. The historical consensus posited a stable, linear inverse relationship between storage inventory and wholesale prices at the **Dutch Title Transfer Facility (TTF)**—the European benchmark.
 
 However, the **2021–2023 European energy crisis completely invalidated linear models**:
-1. **Structural Non-Stationarity**: When inventory levels fell below seasonal norms in 2021, and following the 2022 Russian pipeline curtailments, TTF wholesale prices did not merely rise—they exploded non-linearly to over **310 EUR/MWh** (a $15\times$ surge).
+1. **Structural Non-Stationarity**: When inventory levels fell below seasonal norms in 2021, and following the 2022 Russian pipeline curtailments, TTF wholesale prices did not merely rise—they exploded non-linearly to over **310 EUR/MWh** (a 15-fold surge).
 2. **Failure of Raw Volume Signals**: Raw storage fill percentages in mid-summer provide minimal explanatory power. Markets react to **abnormal deviations from seasonal replenishment targets** and regulatory deadlines (e.g. EU statutory 90% fill mandates by November 1).
-3. **Data Leakage in Published Literature**: Many existing academic studies inadvertently introduce look-ahead bias by aligning day $t$ prices with day $t$ storage data, ignoring the **$D-1$ reporting lag** inherent in the Gas Infrastructure Europe (GIE AGSI+) transparency platform.
+3. **Data Leakage in Published Literature**: Many existing academic studies inadvertently introduce look-ahead bias by aligning day t prices with day t storage data, ignoring the **D-1 reporting lag** inherent in the Gas Infrastructure Europe (GIE AGSI+) transparency platform.
 
-```
-Traditional Linear Model:    Price = α + β · Storage + ε        ❌ Fails completely during supply crunches
-Empirical Reality:           Price Sensitivity = f(Storage Deviation, Volatility Regime, Seasonality)  ✅
+```text
+Traditional Linear Model:    Price = alpha + beta * Storage + eps    [Fails during supply crunches]
+Empirical Reality:           Price Sensitivity = f(Storage Deviation, Volatility Regime, Seasonality) [Valid across regimes]
 ```
 
 ---
 
-## 💡 2. What's the Solution?
+## 2. What is the Solution?
 
 We establish a reproducible, production-grade analytical framework that replaces static linear models with **regime-conditional, seasonally-decomposed econometrics and machine learning**:
 
-* **Strict Point-in-Time Causality ($D-1$ Lag Protocol)**: Storage observed on gas day $t-1$ and published on the morning of day $t$ is strictly mapped to day $t$ market executions, mathematically eliminating look-ahead contamination.
-* **Latent Volatility States (Hamilton Markov Switching)**: A 2-state regime filter on TTF log-returns extracts **causal filtered probabilities** $P(S_t = 1 \mid y_{1:t})$ for real-time forecasting, and full-sample smoothed probabilities for retrospective analysis.
+* **Strict Point-in-Time Causality (D-1 Lag Protocol)**: Storage observed on gas day t-1 and published on the morning of day t is strictly mapped to day t market executions, mathematically eliminating look-ahead contamination.
+* **Latent Volatility States (Hamilton Markov Switching)**: A 2-state regime filter on TTF log-returns extracts **causal filtered probabilities** P(S_t = 1 | y_{1:t}) for real-time forecasting, and full-sample smoothed probabilities for retrospective analysis.
 * **Bayesian Structural Time Series (NumPyro HMC/NUTS)**: Estimates regime-dependent price elasticities:
   $$y_t = \tau_t + \left[\beta_{\text{normal}}(1 - R_t) + \beta_{\text{crisis}} R_t\right] \cdot \text{storage\_dev}_t + \gamma R_t + \epsilon_t$$
-  yielding posterior distributions with **$\hat{R} = 1.00 \ll 1.01$** and **$\text{ESS} > 1,300 \gg 400$**.
-* **Game-Theoretic Explainability (LightGBM + SHAP)**: Quantifies the marginal attribution of 41 engineered features, demonstrating why **5-year inventory deviations dominate absolute fill percentages by $>5\times$** during crises.
+  yielding posterior distributions with **R-hat = 1.00 < 1.01** and **ESS > 1,300 > 400**.
+* **Game-Theoretic Explainability (LightGBM + SHAP)**: Quantifies the marginal attribution of 41 engineered features, demonstrating why **5-year inventory deviations dominate absolute fill percentages by more than 5 times** during crises.
 * **Cross-Market Benchmarking (TTF vs. US Henry Hub)**: Contrasts Europe's severe LNG import convexity against the domestic supply elasticity of North American shale.
 
 ---
 
-## ⚙️ 3. How the Procedure Is?
+## 3. How the Procedure Works
 
 The research procedure follows a rigorous six-stage scientific workflow:
 
@@ -94,7 +94,7 @@ graph TD
     end
 
     subgraph "Phase 5: Evaluation & Explainability"
-        H1 --> I1["Posterior Credible Intervals<br/>95% HDIs (β_normal vs β_crisis)"]
+        H1 --> I1["Posterior Credible Intervals<br/>95% HDIs (beta_normal vs beta_crisis)"]
         H2 --> I2["SHAP Regime Decomposition<br/>TreeExplainer Attribution"]
         H3 & H2 --> I3["Expanding-Window CV<br/>Diebold-Mariano & MZ Tests"]
     end
@@ -112,16 +112,16 @@ graph TD
 ```
 
 ### Detailed Analytical Steps:
-1. **Data Ingestion**: Paginated API extraction from GIE AGSI+ with exponential backoff handling rate limits (`x-key` authentication) and ICE Endex settlement ingestion (2016–2024, $N = 2,347$ trading days).
-2. **Lag Enforcement**: Storage published on date $t$ reflects physical status at close of $t-1$. All market trades on day $t$ observe only $t-1$ inventories: $\Delta t \ge 1.0\text{ days}$.
-3. **Seasonal Decomposition**: STL (LOESS) decomposes total variance: storage fill is 88.4% seasonal, whereas TTF price is 91.2% trend/residual shock.
-4. **Regime Extraction**: Markov Switching identifies low-volatility ($\sigma_0^2 = 0.00043$) vs. crisis ($\sigma_1^2 = 0.00402$) states with a mean crisis persistence of 142 trading days.
-5. **Bayesian Posterior Inference**: NumPyro NUTS sampler runs 2 parallel chains ($1,000$ draws), estimating non-centered local level trends and state-dependent elasticities.
-6. **Cross-Validation**: Expanding-window forward chaining ($1,500$ evaluation points) benchmarking LightGBM against ARIMA(1,1,1) and GARCH(1,1).
+1. **Data Ingestion**: Paginated API extraction from GIE AGSI+ with exponential backoff handling rate limits (x-key authentication) and ICE Endex settlement ingestion (2016–2024, N = 2,347 trading days).
+2. **Lag Enforcement**: Storage published on date t reflects physical status at close of t-1. All market trades on day t observe only t-1 inventories: Delta t >= 1.0 days.
+3. **Seasonal Decomposition**: STL (LOESS) decomposes total variance: storage fill is 88.4% seasonal, whereas TTF price is 91.2% trend and residual shock.
+4. **Regime Extraction**: Markov Switching identifies low-volatility (variance = 0.00043) vs. crisis (variance = 0.00402) states with a mean crisis persistence of 142 trading days.
+5. **Bayesian Posterior Inference**: NumPyro NUTS sampler runs 2 parallel chains (1,000 draws), estimating non-centered local level trends and state-dependent elasticities.
+6. **Cross-Validation**: Expanding-window forward chaining (1,500 evaluation points) benchmarking LightGBM against ARIMA(1,1,1) and GARCH(1,1).
 
 ---
 
-## 📈 4. Key Visualizations & Research Outputs
+## 4. Key Visualizations & Research Outputs
 
 *All 300 DPI high-resolution figures are preserved in [`output/`](output/) and showcased in [`OUTPUT.md`](OUTPUT.md).*
 
@@ -134,7 +134,7 @@ graph TD
 ---
 
 ### Figure 2: Latent Regime Identification via Hamilton Markov Switching
-*Top: TTF log-returns. Bottom: Real-time causal filtered probability $P(S_t = 1 \mid y_{1:t})$ vs. full-sample smoothed probability $P(S_t = 1 \mid y_{1:T})$.*
+*Top: TTF log-returns. Bottom: Real-time causal filtered probability P(S_t = 1 | y_{1:t}) vs. full-sample smoothed probability P(S_t = 1 | y_{1:T}).*
 <div align="center">
   <img src="output/fig2_regime_smoothed_probabilities.png" width="90%" alt="Figure 2: Markov Switching Probabilities"/>
 </div>
@@ -142,7 +142,7 @@ graph TD
 ---
 
 ### Figure 3: Bayesian Marginal Storage Elasticity Posteriors (NumPyro)
-*Posterior distributions for storage elasticity in Tranquil ($\beta_{\text{normal}}$) vs. Crisis ($\beta_{\text{crisis}}$) regimes, proving non-overlapping 95% HDIs.*
+*Posterior distributions for storage elasticity in Tranquil (beta_normal) vs. Crisis (beta_crisis) regimes, proving non-overlapping 95% HDIs.*
 <div align="center">
   <img src="output/fig3_bayesian_posterior_storage_effect.png" width="75%" alt="Figure 3: Bayesian Posteriors"/>
 </div>
@@ -150,7 +150,7 @@ graph TD
 ---
 
 ### Figure 4: SHAP Feature Importance Decomposed by Market Regime
-*Mean absolute SHAP impact shifts: 5-year inventory deviation and days to winter surge by $>3\times$ in predictive power during crisis states.*
+*Mean absolute SHAP impact shifts: 5-year inventory deviation and days to winter surge by more than 3 times in predictive power during crisis states.*
 <div align="center">
   <img src="output/fig4_shap_regime_decomposition.png" width="80%" alt="Figure 4: SHAP Decomposition"/>
 </div>
@@ -173,29 +173,29 @@ graph TD
 
 ---
 
-## 🔬 5. Core Empirical Results & Verification
+## 5. Core Empirical Results & Verification
 
 ### 1. Bayesian Structural Parameters (NumPyro NUTS)
 $$\max(\hat{R}) = 1.00 \ll 1.01, \quad \min(\text{ESS}) = 1,368 \gg 400$$
 
 | Parameter | Meaning | Posterior Mean | Posterior Std | 95% Highest Density Interval | Statistical Significance |
 | :--- | :--- | :---: | :---: | :---: | :---: |
-| $\beta_{\text{normal}}$ | Normal Storage Elasticity | **$-0.148$** | $0.062$ | $[-0.274, -0.026]$ | $p < 0.01$ |
-| $\beta_{\text{crisis}}$ | Crisis Storage Elasticity | **$-0.682$** | $0.078$ | $[-0.835, -0.528]$ | $p < 0.001$ |
-| $\gamma_{\text{regime}}$ | Crisis Shift Intercept | **$+0.783$** | $0.079$ | $[+0.640, +0.933]$ | $p < 0.001$ |
-| $\alpha$ | Equilibrium Price Level | **$2.670$** | $0.059$ | $[2.569, 2.789]$ | $p < 0.001$ |
-| $\sigma_{\text{obs}}$ | Observation Innovation | **$0.579$** | $0.019$ | $[0.545, 0.615]$ | $p < 0.001$ |
+| $\beta_{\text{normal}}$ | Normal Storage Elasticity | **-0.148** | 0.062 | [-0.274, -0.026] | p < 0.01 |
+| $\beta_{\text{crisis}}$ | Crisis Storage Elasticity | **-0.682** | 0.078 | [-0.835, -0.528] | p < 0.001 |
+| $\gamma_{\text{regime}}$ | Crisis Shift Intercept | **+0.783** | 0.079 | [+0.640, +0.933] | p < 0.001 |
+| $\alpha$ | Equilibrium Price Level | **2.670** | 0.059 | [2.569, 2.789] | p < 0.001 |
+| $\sigma_{\text{obs}}$ | Observation Innovation | **0.579** | 0.019 | [0.545, 0.615] | p < 0.001 |
 
 ### 2. Out-of-Sample Forecasting vs. Econometric Baselines
 
-| Target | Benchmark Baseline | Regime-Aware Machine Learning | Diebold-Mariano Stat | Mincer-Zarnowitz $R^2$ |
+| Target | Benchmark Baseline | Regime-Aware Machine Learning | Diebold-Mariano Stat | Mincer-Zarnowitz R^2 |
 | :--- | :--- | :---: | :---: | :---: |
-| **5-Day Return** | ARIMA(1,1,1) (RMSE: $0.0986$, DA: $47.5\%$) | **LightGBM (RMSE: $0.0814$, DA: $58.4\%$)** | **$+3.42$ ($p = 0.0006$)** | **$0.086$** (vs $0.002$) |
-| **20-Day Forward Vol** | GARCH(1,1) (RMSE: $0.3420$) | **Storage GBM (RMSE: $0.2180$)** | **$+4.88$ ($p < 0.0001$)** | **$0.461$** (vs $0.184$) |
+| **5-Day Return** | ARIMA(1,1,1) (RMSE: 0.0986, DA: 47.5%) | **LightGBM (RMSE: 0.0814, DA: 58.4%)** | **+3.42 (p = 0.0006)** | **0.086** (vs 0.002) |
+| **20-Day Forward Vol** | GARCH(1,1) (RMSE: 0.3420) | **Storage GBM (RMSE: 0.2180)** | **+4.88 (p < 0.0001)** | **0.461** (vs 0.184) |
 
 ---
 
-## 📁 6. Repository Layout
+## 6. Repository Layout
 
 ```text
 tf-gas-storage-regimes/
@@ -246,11 +246,11 @@ tf-gas-storage-regimes/
 
 ---
 
-## 🚀 7. Quickstart & Reproduction
+## 7. Quickstart & Reproduction
 
 ### Prerequisites
 - Python 3.10+ (Python 3.11 recommended)
-- [uv](https://github.com/astral-sh/uv) (ultra-fast package installer) or Docker
+- uv (package installer) or Docker
 
 ### 1. Installation
 ```bash
@@ -267,7 +267,7 @@ Run the entire analytical pipeline with a single command:
 ```bash
 make run
 ```
-*This executes data ingestion, DuckDB analytical loading, feature engineering, Hamilton regime identification, NumPyro Bayesian estimation, LightGBM SHAP attribution, and publication figure generation in ~10 seconds.*
+*This executes data ingestion, DuckDB analytical loading, feature engineering, Hamilton regime identification, NumPyro Bayesian estimation, LightGBM SHAP attribution, and publication figure generation in approximately 10 seconds.*
 
 ### 3. Running the Quality Suite
 ```bash
@@ -283,7 +283,7 @@ docker compose -f docker/docker-compose.yml up --build pipeline
 
 ---
 
-## 📜 8. Governance & Model Limitations
+## 8. Governance & Model Limitations
 
 - **Operator Self-Reporting**: AGSI+ storage levels are self-reported by Storage System Operators (SSOs) and subject to ex-post revisions (tracked via DuckDB versioning).
 - **Physical Cushion Gas**: Working gas percentage does not capture non-linear pressure drop-offs during peak withdrawal episodes.
@@ -291,6 +291,6 @@ docker compose -f docker/docker-compose.yml up --build pipeline
 
 ---
 
-## 📄 9. License
+## 9. License
 
 This repository is distributed under the **MIT License**. See [`LICENSE`](LICENSE) for terms.
